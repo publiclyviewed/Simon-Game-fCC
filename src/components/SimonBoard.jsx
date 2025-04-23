@@ -21,7 +21,9 @@ const colorClasses = {
         {Object.entries(sounds).map(([color, url]) => (
           <SimonButton
             key={color}
+            id={color}
             color={colorClasses[color]}
+            rawColor={color}
             soundUrl={url}
             onClick={handlePlayerInput}
           />

@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import SimonBoard from './components/SimonBoard';
 import ControlPanel from './components/ControlPanel';
+import Popup from './components/Popup';
+import './App.css';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -9,26 +11,92 @@ function App() {
   const [playerSequence, setPlayerSequence] = useState([]);
   const [isGameOn, setIsGameOn] = useState(false);
   const [isDisplaying, setIsDisplaying] = useState(false);
-  const timeoutRefs = useRef([]);
+  const [instructionsVisible, setInstructionsVisible] = useState(false);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+  const [language, setLanguage] = useState('EN');
 
-  const colors = ['green', 'red', 'yellow', 'blue'];
+  const timeoutRefs = useRef([]);
+  const colors = useMemo(() => ['green', 'red', 'yellow', 'blue'], []);
+  const translations = {
+    EN: {
+      start: 'Start',
+      stop: 'Stop',
+      strict: 'Strict',
+      count: 'Count',
+      win: 'You Win!',
+      lose: 'You Lose!',
+      instructions: 'Follow the pattern of lights and sounds.',
+      showInstructions: 'Show Instructions',
+      hideInstructions: 'Hide Instructions',
+    },
+    JP: {
+      start: '開始',
+      stop: '停止',
+      strict: '厳密',
+      count: '回数',
+      win: '勝利！',
+      lose: '敗北！',
+      instructions: '光と音のパターンに従ってください。',
+      showInstructions: '説明を表示',
+      hideInstructions: '説明を非表示',
+    },
+  };
+
+  const errorSound = useMemo(() => new Audio('https://example.com/error.mp3'), []);
+
+  const flashColor = (color) => {
+    window.dispatchEvent(new Event(`flash-${color}`));
+  };
+
+  const displaySequence = useCallback(
+    (sequence) => {
+      setIsDisplaying(true);
+      sequence.forEach((color, index) => {
+        const timeoutId = setTimeout(() => {
+          flashColor(color);
+          if (index === sequence.length - 1) setIsDisplaying(false);
+        }, index * 800);
+        timeoutRefs.current.push(timeoutId);
+      });
+    },
+    [timeoutRefs]
+  );
+
+  const generateSequence = useCallback(() => {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const newSequence = [...gameSequence, randomColor];
+    setGameSequence(newSequence);
+    setPlayerSequence([]);
+    setCount(newSequence.length);
+    displaySequence(newSequence);
+  }, [colors, gameSequence, displaySequence]);
 
   useEffect(() => {
     if (isGameOn && gameSequence.length === 0) {
       generateSequence();
     }
-  }, [isGameOn]);
+  }, [isGameOn, gameSequence, generateSequence]);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === 'g') handlePlayerInput('green');
+      else if (e.key === 'r') handlePlayerInput('red');
+      else if (e.key === 'y') handlePlayerInput('yellow');
+      else if (e.key === 'b') handlePlayerInput('blue');
+    };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [gameSequence, playerSequence]);
 
   useEffect(() => {
     return () => {
-      // Clear any timeouts when the component unmounts
       timeoutRefs.current.forEach(clearTimeout);
     };
   }, []);
 
   const handleToggleGame = () => {
     if (isGameOn) {
-      // Reset everything when turning off
       setIsGameOn(false);
       setGameSequence([]);
       setPlayerSequence([]);
@@ -40,34 +108,7 @@ function App() {
     }
   };
 
-  const toggleStrict = () => {
-    setStrict((prev) => !prev);
-  };
-
-  const generateSequence = () => {
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    const newSequence = [...gameSequence, randomColor];
-    setGameSequence(newSequence);
-    setPlayerSequence([]);
-    setCount(newSequence.length);
-    displaySequence(newSequence);
-  };
-
-  const displaySequence = (sequence) => {
-    setIsDisplaying(true);
-    sequence.forEach((color, index) => {
-      const timeoutId = setTimeout(() => {
-        flashColor(color);
-        if (index === sequence.length - 1) setIsDisplaying(false);
-      }, index * 800);
-      timeoutRefs.current.push(timeoutId);
-    });
-  };
-
-  const flashColor = (color) => {
-    window.dispatchEvent(new Event(`flash-${color}`));
-  };
-  
+  const toggleStrict = () => setStrict((prev) => !prev);
 
   const handlePlayerInput = (color) => {
     if (!isGameOn || isDisplaying) return;
@@ -78,14 +119,16 @@ function App() {
     const currentIndex = updatedPlayerSequence.length - 1;
 
     if (updatedPlayerSequence[currentIndex] !== gameSequence[currentIndex]) {
+      errorSound.play(); // Play error sound
       if (strict) {
-        alert('Game Over! Strict mode is ON!');
+        setPopupMessage(translations[language].lose);
+        setPopupVisible(true);
         setIsGameOn(false);
         setGameSequence([]);
         setPlayerSequence([]);
         setCount(0);
       } else {
-        alert('Incorrect! Try again.');
+        alert('Incorrect! Try again.'); // Optionally replace with another popup
         setPlayerSequence([]);
         displaySequence(gameSequence);
       }
@@ -93,23 +136,48 @@ function App() {
     }
 
     if (updatedPlayerSequence.length === gameSequence.length) {
-      setTimeout(() => generateSequence(), 1000);
+      if (updatedPlayerSequence.length === 20) {
+        setPopupMessage(translations[language].win);
+        setPopupVisible(true);
+        setIsGameOn(false);
+        setGameSequence([]);
+        setPlayerSequence([]);
+        setCount(0);
+      } else {
+        setTimeout(() => generateSequence(), 1000);
+      }
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-      <div className="flex flex-col items-center">
-        <h1 className="text-3xl mb-6 font-bold">Simon Game</h1>
-        <SimonBoard handlePlayerInput={handlePlayerInput} />
-        <ControlPanel
-          count={count}
-          isGameOn={isGameOn}
-          onToggleGame={handleToggleGame}
-          strict={strict}
-          toggleStrict={toggleStrict}
-        />
-      </div>
+    <div className="app-container">
+      <header className="app-header">
+        <h1 className="title">サイモン・リズムX</h1>
+        <div className="language-selector">
+          <label>
+            {language === 'EN' ? 'Language' : '言語'}
+            <select onChange={(e) => setLanguage(e.target.value)} value={language}>
+              <option value="EN">English</option>
+              <option value="JP">日本語</option>
+            </select>
+          </label>
+        </div>
+      </header>
+      <SimonBoard handlePlayerInput={handlePlayerInput} />
+      <ControlPanel
+        count={count}
+        isGameOn={isGameOn}
+        onToggleGame={handleToggleGame}
+        strict={strict}
+        toggleStrict={toggleStrict}
+        language={language}
+        translations={translations}
+      />
+      <button onClick={() => setInstructionsVisible((prev) => !prev)}>
+        {instructionsVisible ? translations[language].hideInstructions : translations[language].showInstructions}
+      </button>
+      {instructionsVisible && <p className="instructions">{translations[language].instructions}</p>}
+      {popupVisible && <Popup message={popupMessage} onClose={() => setPopupVisible(false)} />}
     </div>
   );
 }

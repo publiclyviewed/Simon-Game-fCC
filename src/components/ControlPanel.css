@@ -1,0 +1,78 @@
+/* Control Panel container */
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px auto;
+    padding: 10px;
+    border: 2px solid #00ffe7;
+    border-radius: 10px;
+    box-shadow: 0 0 8px #00ffe7, 0 0 16px #00ffe7;
+    background-color: rgba(15, 15, 15, 0.9);
+    color: #00ffe7;
+    width: 250px;
+    text-align: center;
+  }
+  
+  /* Count display */
+  .count {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .count-display {
+    font-family: 'Courier New', monospace; /* Mimicking the mono font */
+    color: #ff00cc;
+  }
+  
+  /* Button container styling */
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  /* Toggle button styles */
+  .toggle-button {
+    font-size: 1rem;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .toggle-button.game-on {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 12px #00ff00;
+  }
+  
+  .toggle-button.game-off {
+    background-color: #ff0000;
+    color: #fff;
+    box-shadow: 0 0 12px #ff0000;
+  }
+  
+  /* Strict button styles */
+  .strict-button {
+    font-size: 1rem;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .strict-button.strict-on {
+    background-color: #00ffe7;
+    color: #000;
+    box-shadow: 0 0 12px #00ffe7;
+  }
+  
+  .strict-button.strict-off {
+    background-color: #999;
+    color: #fff;
+    box-shadow: 0 0 12px #666;
+  }

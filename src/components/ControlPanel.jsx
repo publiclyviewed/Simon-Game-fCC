@@ -1,27 +1,26 @@
 import React from 'react';
+import './ControlPanel.css'; // Import the custom CSS
 
-const ControlPanel = ({ count, onToggleGame, isGameOn, strict, toggleStrict }) => {
+const ControlPanel = ({ count, onToggleGame, isGameOn, strict, toggleStrict, language }) => {
+  const countLabel = language === 'JP' ? '回数' : 'Count';
+
   return (
-    <div className="flex flex-col items-center mt-6 space-y-4">
-      <div className="text-lg">
-        Count: <span className="font-mono">{count.toString().padStart(2, '0')}</span>
+    <div className="control-panel">
+      <div className="count">
+        {countLabel}: <span>{count.toString().padStart(2, '0')}</span>
       </div>
-      <div className="flex gap-4">
+      <div className="buttons">
         <button
           onClick={onToggleGame}
-          className={`px-4 py-2 rounded font-semibold ${
-            isGameOn ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-          } text-white`}
+          className={`toggle-button ${isGameOn ? 'game-on' : 'game-off'}`}
         >
-          {isGameOn ? 'Stop' : 'Start'}
+          {isGameOn ? (language === 'JP' ? '停止' : 'Stop') : (language === 'JP' ? '開始' : 'Start')}
         </button>
         <button
           onClick={toggleStrict}
-          className={`px-4 py-2 rounded font-semibold ${
-            strict ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-white'
-          }`}
+          className={`strict-button ${strict ? 'strict-on' : 'strict-off'}`}
         >
-          Strict {strict ? 'ON' : 'OFF'}
+          {language === 'JP' ? '厳密' : 'Strict'} {strict ? (language === 'JP' ? 'オン' : 'On') : (language === 'JP' ? 'オフ' : 'Off')}
         </button>
       </div>
     </div>

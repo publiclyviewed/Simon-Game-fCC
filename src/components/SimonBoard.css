@@ -1,0 +1,16 @@
+/* Container for the buttons */
+.simon-board {
+    display: grid;
+    grid-template-columns: repeat(2, 150px);
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+  }
+  
+  /* Add spacing and centering for the grid */
+  .simon-board {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }

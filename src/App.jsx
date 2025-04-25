@@ -50,7 +50,7 @@ function App() {
     },
   };
 
-  const errorSound = useMemo(() => new Audio('https://example.com/error.mp3'), []);
+  const errorSound = useMemo(() => new Audio('https://cdn.freecodecamp.org/curriculum/take-home-projects/simonSound1.mp3'), []);
 
   const flashColor = (color) => {
     window.dispatchEvent(new Event(`flash-${color}`));
@@ -184,7 +184,7 @@ function App() {
         {instructionsVisible ? translations[language].hideInstructions : translations[language].showInstructions}
       </button>
       {instructionsVisible && <p className="instructions">{translations[language].instructions}</p>}
-      {popupVisible && <Popup message={popupMessage} onClose={() => setPopupVisible(false)} />}
+      {popupVisible && <Popup message={popupMessage} kanji="勝" onClose={() => setPopupVisible(false)} />}
     </div>
   );
 }

@@ -103,3 +103,22 @@ button:hover {
   background: #ff0099;
   box-shadow: 0 0 12px rgba(255, 0, 153, 0.8), 0 0 24px rgba(255, 0, 153, 0.4);
 }
+
+/* Score and Best Streak styling */
+.score-display {
+  margin: 20px 0;
+  padding: 15px 25px;
+  border: 2px solid #00ffe7;
+  border-radius: 10px;
+  background: rgba(36, 36, 62, 0.8);
+  box-shadow: 0 0 12px #00ffe7, 0 0 24px #00ffe7;
+  text-align: center;
+}
+
+.score-display p {
+  margin: 8px 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #00ffe7;
+  text-shadow: 0 0 8px #00ffe7, 0 0 16px #00ffe7;
+}

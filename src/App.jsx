@@ -15,6 +15,7 @@ function App() {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
   const [language, setLanguage] = useState('EN');
+  const [bestStreak, setBestStreak] = useState(() => parseInt(localStorage.getItem('bestStreak')) || 0);
 
   const timeoutRefs = useRef([]);
   const colors = useMemo(() => ['green', 'red', 'yellow', 'blue'], []);
@@ -33,6 +34,8 @@ function App() {
 - Turn on strict mode for a greater challenge!`,
       showInstructions: 'Show Instructions',
       hideInstructions: 'Hide Instructions',
+      score: 'Score',
+      best: 'Best Streak'
     },
     JP: {
       start: '開始',
@@ -47,10 +50,19 @@ function App() {
 - 厳密モードをオンにして、さらに挑戦しよう！`,
       showInstructions: '説明を表示',
       hideInstructions: '説明を非表示',
-    },
+      score: 'スコア',
+      best: '最高記録'
+    }
   };
 
-  const errorSound = useMemo(() => new Audio('https://cdn.freecodecamp.org/curriculum/take-home-projects/simonSound1.mp3'), []);
+  const getFlashDelay = (length) => {
+    if (length < 5) return 800;
+    if (length < 10) return 600;
+    if (length < 15) return 400;
+    return 300;
+  };
+
+  const errorSound = useMemo(() => new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'), []);
 
   const flashColor = (color) => {
     window.dispatchEvent(new Event(`flash-${color}`));
@@ -59,11 +71,12 @@ function App() {
   const displaySequence = useCallback(
     (sequence) => {
       setIsDisplaying(true);
+      const delay = getFlashDelay(sequence.length);
       sequence.forEach((color, index) => {
         const timeoutId = setTimeout(() => {
           flashColor(color);
           if (index === sequence.length - 1) setIsDisplaying(false);
-        }, index * 800);
+        }, index * delay);
         timeoutRefs.current.push(timeoutId);
       });
     },
@@ -103,6 +116,10 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    errorSound.load();
+  }, [errorSound]);
+
   const handleToggleGame = () => {
     if (isGameOn) {
       setIsGameOn(false);
@@ -127,7 +144,7 @@ function App() {
     const currentIndex = updatedPlayerSequence.length - 1;
 
     if (updatedPlayerSequence[currentIndex] !== gameSequence[currentIndex]) {
-      errorSound.play(); // Play error sound
+      errorSound.play();
       if (strict) {
         setPopupMessage(translations[language].lose);
         setPopupVisible(true);
@@ -143,6 +160,11 @@ function App() {
     }
 
     if (updatedPlayerSequence.length === gameSequence.length) {
+      if (updatedPlayerSequence.length > bestStreak) {
+        setBestStreak(updatedPlayerSequence.length);
+        localStorage.setItem('bestStreak', updatedPlayerSequence.length);
+      }
+
       if (updatedPlayerSequence.length === 20) {
         setPopupMessage(translations[language].win);
         setPopupVisible(true);
@@ -169,6 +191,10 @@ function App() {
             </select>
           </label>
         </div>
+        <div className="score-display">
+          <p>{translations[language].score}: {count}</p>
+          <p>{translations[language].best}: {bestStreak}</p>
+        </div>
       </header>
       <SimonBoard handlePlayerInput={handlePlayerInput} />
       <ControlPanel
@@ -184,7 +210,20 @@ function App() {
         {instructionsVisible ? translations[language].hideInstructions : translations[language].showInstructions}
       </button>
       {instructionsVisible && <p className="instructions">{translations[language].instructions}</p>}
-      {popupVisible && <Popup message={popupMessage} kanji="勝" onClose={() => setPopupVisible(false)} />}
+      {popupVisible && (
+        <Popup
+          message={popupMessage}
+          kanji="勝"
+          onClose={() => setPopupVisible(false)}
+          onReplay={() => {
+            setPopupVisible(false);
+            setGameSequence([]);
+            setPlayerSequence([]);
+            setCount(0);
+            setIsGameOn(true);
+          }}
+        />
+      )}
     </div>
   );
 }
